@@ -8,7 +8,7 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE,
+      usermail TEXT UNIQUE,
       usertype TEXT CHECK(usertype IN ('owner', 'investor')),
       password TEXT
     )
