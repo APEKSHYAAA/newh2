@@ -26,6 +26,12 @@ const parseBody = (req, callback) => {
   });
 };
 
+// Helper function to send JSON response
+const sendJsonResponse = (res, statusCode, data) => {
+  res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(data));
+};
+
 // Routes
 const routes = {
   '/register': (req, res) => {
@@ -36,30 +42,26 @@ const routes = {
     }
 
     if (req.method !== 'POST') {
-      res.writeHead(405);
-      res.end('Method Not Allowed');
+      sendJsonResponse(res, 405, { error: 'Method Not Allowed' });
       return;
     }
 
     parseBody(req, (data) => {
       if (!data || !data.username || !data.password || !data.usertype) {
-        res.writeHead(400);
-        res.end('Username, password, and usertype are required.');
+        sendJsonResponse(res, 400, { error: 'Username, password, and usertype are required.' });
         return;
       }
 
       const { username, password, usertype } = data;
 
       if (usertype !== 'owner' && usertype !== 'investor') {
-        res.writeHead(400);
-        res.end('Usertype must be either "owner" or "investor".');
+        sendJsonResponse(res, 400, { error: 'Usertype must be either "owner" or "investor".' });
         return;
       }
 
       bcrypt.hash(password, 10, (err, hashedPassword) => {
         if (err) {
-          res.writeHead(500);
-          res.end('Error hashing password.');
+          sendJsonResponse(res, 500, { error: 'Error hashing password.' });
           return;
         }
 
@@ -68,14 +70,12 @@ const routes = {
           [username, hashedPassword, usertype],
           (err) => {
             if (err) {
-              res.writeHead(400);
-              res.end('Username already exists.');
+              sendJsonResponse(res, 400, { error: 'Username already exists.' });
               return;
             }
 
             console.log("User registered successfully.");
-            res.writeHead(200);
-            res.end(JSON.stringify({ message: 'User registered successfully', usertype }));
+            sendJsonResponse(res, 200, { message: 'User registered successfully', usertype });
           }
         );
       });
@@ -90,15 +90,13 @@ const routes = {
     }
 
     if (req.method !== 'POST') {
-      res.writeHead(405);
-      res.end('Method Not Allowed');
+      sendJsonResponse(res, 405, { error: 'Method Not Allowed' });
       return;
     }
 
     parseBody(req, (data) => {
       if (!data || !data.username || !data.password) {
-        res.writeHead(400);
-        res.end('Username and password are required.');
+        sendJsonResponse(res, 400, { error: 'Username and password are required.' });
         return;
       }
 
@@ -106,29 +104,23 @@ const routes = {
 
       db.get(`SELECT * FROM users WHERE username = ?`, [username], (err, user) => {
         if (err || !user) {
-          res.writeHead(401);
-          res.end('Invalid username or password.');
+          sendJsonResponse(res, 401, { error: 'Invalid username or password.' });
           return;
         }
 
         bcrypt.compare(password, user.password, (err, isValid) => {
           if (err) {
-            res.writeHead(500);
-            res.end('Error logging in.');
+            sendJsonResponse(res, 500, { error: 'Error logging in.' });
             return;
           }
 
           if (isValid) {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(
-              JSON.stringify({
-                message: 'Login successful!',
-                usertype: user.usertype,
-              })
-            );
+            sendJsonResponse(res, 200, {
+              message: 'Login successful!',
+              usertype: user.usertype,
+            });
           } else {
-            res.writeHead(401);
-            res.end('Invalid username or password.');
+            sendJsonResponse(res, 401, { error: 'Invalid username or password.' });
           }
         });
       });
@@ -136,8 +128,7 @@ const routes = {
   },
 
   '/': (req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Welcome to the User Management System');
+    sendJsonResponse(res, 200, { message: 'Welcome to the User Management System' });
   },
 };
 
@@ -157,8 +148,7 @@ const server = http.createServer((req, res) => {
   if (route) {
     route(req, res);
   } else {
-    res.writeHead(404);
-    res.end('Not Found');
+    sendJsonResponse(res, 404, { error: 'Not Found' });
   }
 });
 
