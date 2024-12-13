@@ -2,9 +2,8 @@ const http = require('http');
 const { parse } = require('url');
 const bcrypt = require('bcrypt');
 const db = require("./db/database");
-require('dotenv').config();
 
-const PORT = process.env.PORT || 8000;
+const PORT = 8000;
 
 // Parse JSON body of incoming requests
 const parseBody = (req, callback) => {
