@@ -5,19 +5,30 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    price: {
+    description: {
+        type: String,
+        required: true
+    },
+    fund_needed: {
         type: Number,
         required: true
     },
-     image: {
+    fund_raised: {
+        type: Number,
+        required: true
+    },
+    perks: {
         type: String,
         required: true
-     },
-
+    },
+    image: {
+        type: String,
+        required: true
+    }
 },
-{
-    timestamps: true
-});
+    {
+        timestamps: true
+    });
 
 const Product = mongoose.model("Product", productSchema);
 
