@@ -5,6 +5,14 @@ const db = require("./db/database");
 
 const PORT = 8000;
 
+// CORS middleware
+const setCorsHeaders = (res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+};
+
 // Parse JSON body of incoming requests
 const parseBody = (req, callback) => {
   let body = '';
@@ -21,6 +29,12 @@ const parseBody = (req, callback) => {
 // Routes
 const routes = {
   '/register': (req, res) => {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200);
+      res.end();
+      return;
+    }
+
     if (req.method !== 'POST') {
       res.writeHead(405);
       res.end('Method Not Allowed');
@@ -58,8 +72,10 @@ const routes = {
               res.end('Username already exists.');
               return;
             }
-            res.writeHead(201, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ message: 'User registered successfully.' }));
+
+            console.log("User registered successfully.");
+            res.writeHead(200);
+            res.end(JSON.stringify({ message: 'User registered successfully', usertype }));
           }
         );
       });
@@ -67,6 +83,12 @@ const routes = {
   },
 
   '/login': (req, res) => {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(200);
+      res.end();
+      return;
+    }
+
     if (req.method !== 'POST') {
       res.writeHead(405);
       res.end('Method Not Allowed');
@@ -121,6 +143,14 @@ const routes = {
 
 // HTTP server
 const server = http.createServer((req, res) => {
+  setCorsHeaders(res);
+
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200);
+    res.end();
+    return;
+  }
+
   const parsedUrl = parse(req.url, true);
   const route = routes[parsedUrl.pathname];
 
