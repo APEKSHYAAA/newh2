@@ -36,7 +36,7 @@ function LoginPage({ error }) {
           duration: 5000,
           isClosable: true,
         });
-
+        window.location.href = "/";
         // Optionally, you can store user info or a token in localStorage or state
         console.log(response.data);
       } catch (error) {

@@ -41,7 +41,7 @@ function RegisterPage() {
           duration: 5000,
           isClosable: true,
         });
-
+        window.location.href = "/login";
         // Optionally, you can redirect the user to the login page or home page
       } catch (error) {
         // Handle errors (e.g., validation failure, server issues)
@@ -127,7 +127,7 @@ function RegisterPage() {
             type="text"
             value={formData.userType}
             onChange={handleInputChange}
-            placeholder="Enter user type (e.g., admin, user)"
+            placeholder="Either owner or investor"
             _placeholder={{ color: 'gray.400' }}
             bg="gray.700"
             color="white"
