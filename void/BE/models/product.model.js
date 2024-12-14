@@ -1,11 +1,7 @@
-import mongoose, { trusted } from "mongoose";
+import mongoose from "mongoose";
 
 const productSchema = mongoose.Schema({
     name: {
-        type: String,
-        required: true
-    },
-    description: {
         type: String,
         required: true
     },
@@ -13,16 +9,25 @@ const productSchema = mongoose.Schema({
         type: Number,
         required: true
     },
-    fund_raised: {
+    fund_raise: {
         type: Number,
         required: true
     },
     perks: {
+        type: [String],  // Assuming perks are stored as an array of strings
+        required: true
+    },
+    description: {
         type: String,
         required: true
     },
     image: {
         type: String,
+        required: true
+    },
+    categories: {
+        type: String,
+        enum: ['Food', 'Grocery', 'Clothes', 'Repair', 'Electronics'],
         required: true
     }
 },

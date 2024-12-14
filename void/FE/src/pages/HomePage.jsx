@@ -1,52 +1,113 @@
-import React, { useEffect } from 'react'; 
-import {Container,Text, VStack,SimpleGrid} from '@chakra-ui/react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react'; 
+import { 
+  Container, 
+  Text, 
+  VStack, 
+  SimpleGrid, 
+  Button, 
+  Box 
+} from '@chakra-ui/react';
 import { useProductStore } from '../store/product';
 import ProductCard from "../components/productcard.jsx";
 
 const HomePage = () => {
-  const {fetchProducts,products}= useProductStore();
-  useEffect(() => {fetchProducts(); },[fetchProducts]);
-  console.log("products",products);
+  const { fetchProducts, products } = useProductStore();
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    // Update filtered products based on selected category
+    if (selectedCategory === "All") {
+      setFilteredProducts(products);
+    } else if (selectedCategory) {
+      setFilteredProducts(
+        products.filter((product) => product.categories === selectedCategory)
+      );
+    } else {
+      setFilteredProducts([]);
+    }
+  }, [selectedCategory, products]);
+
   return (
-<Container maxW='container.xl' py={12}>
-			<VStack spacing={8}>
-				<Text
-					fontSize={"30"}
-					fontWeight={"bold"}
-					bgGradient={"linear(to-r, cyan.400, blue.500)"}
-					bgClip={"text"}
-					textAlign={"center"}
-				>
-					Current Products 🚀
-				</Text>
-
-        <SimpleGrid 
-        columns={{
-          base:1 ,
-          md:2,
-          lg:3
-        }} spacing={10} w={
-          "full"
-        }>
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product}/>
-          ))}
+    <Container maxW="container.xl">
+      <VStack spacing={4} mt={8}>
+        <Text fontSize="2xl" color="black" fontWeight="bold">
+          Select a Category
+        </Text>
+        <SimpleGrid columns={[2, 3, 6]} spacing={4}>
+          {selectedCategory === null && (
+            <>
+              <Button
+                colorScheme="blue"
+                onClick={() => setSelectedCategory("All")}
+              >
+                All
+              </Button>
+              <Button
+                colorScheme="teal"
+                onClick={() => setSelectedCategory("Food")}
+              >
+                Food
+              </Button>
+              <Button
+                colorScheme="purple"
+                onClick={() => setSelectedCategory("Clothes")}
+              >
+                Clothes
+              </Button>
+              <Button
+                colorScheme="orange"
+                onClick={() => setSelectedCategory("Furniture")}
+              >
+                Furniture
+              </Button>
+              <Button
+                colorScheme="yellow"
+                onClick={() => setSelectedCategory("Repair")}
+              >
+                Repair
+              </Button>
+              <Button
+                colorScheme="green"
+                onClick={() => setSelectedCategory("Grocery")}
+              >
+                Grocery
+              </Button>
+            </>
+          )}
+          {selectedCategory !== null && (
+            <Button
+              colorScheme="red"
+              onClick={() => setSelectedCategory(null)}
+            >
+              Switch Category
+            </Button>
+          )}
         </SimpleGrid>
-
-        {products.length === 0 &&(
-        <Text fontSize='xl' textAlign={"center"} fontWeight='bold' color='gray.500'>
-						No products found 😢{" "}
-						<Link to={"/create"}>
-							<Text as='span' color='blue.500' _hover={{ textDecoration: "underline" }}>
-								Create a product
-							</Text>
-						</Link>
-					</Text>)}
       </VStack>
-    </Container>
-    
-  )
-}
 
-export default HomePage
+      {selectedCategory && (
+        <Box
+          mt={8}
+          transition="opacity 0.5s ease-in-out"
+          opacity={selectedCategory ? 1 : 0}
+        >
+          <Text fontSize="xl" color="gray.700" fontWeight="bold" mb={4}>
+            Showing {selectedCategory} Products
+          </Text>
+          <SimpleGrid columns={[1, 2, 3]} spacing={6}>
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </SimpleGrid>
+        </Box>
+      )}
+    </Container>
+  );
+};
+
+export default HomePage;
