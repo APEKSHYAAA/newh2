@@ -1,162 +1,138 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // React Router's useNavigate hook
-import { Box, Button, FormControl, FormLabel, Input, FormErrorMessage, Select, useToast } from '@chakra-ui/react';
+import { Box, Button, FormControl, FormLabel, Input, FormErrorMessage, useToast } from '@chakra-ui/react';
+import axios from 'axios';
 
 function RegisterPage() {
-  const navigate = useNavigate(); // React Router's useNavigate hook
-  const toast = useToast();
-
-  const [formValues, setFormValues] = useState({
+  const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
-    userType: 'investor', // Default user type
+    userType: '',
   });
 
-  const [errors, setErrors] = useState({}); // Track form errors
+  const [isError, setIsError] = useState(false);
+  const [errorMessages, setErrorMessages] = useState({});
+  const toast = useToast();
 
-  // Form validation function
-  const validate = (values) => {
-    const errors = {};
-    if (!values.fullName) {
-      errors.fullName = 'Full name is required';
-    }
-    if (!values.email) {
-      errors.email = 'Email is required';
-    } else if (values.email.length < 2) {
-      errors.email = 'Email is too short';
-    } else if (values.email.length > 50) {
-      errors.email = 'Email is too long';
-    }
-    if (!values.password) {
-      errors.password = 'Password is required';
-    } else if (values.password.length < 6) {
-      errors.password = 'Password must be at least 6 characters';
-    }
-    if (!values.userType) {
-      errors.userType = 'User type is required';
-    }
-    return errors;
-  };
-
-  // Handle input changes
-  const handleChange = (e) => {
+  // Handle input changes for form fields
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormValues({
-      ...formValues,
+    setFormData((prevData) => ({
+      ...prevData,
       [name]: value,
-    });
+    }));
   };
 
-  // Handle form submission
+  // Handle form submission for user registration
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = validate(formValues);
-    setErrors(validationErrors);
-    if (Object.keys(validationErrors).length === 0) {
+
+    // Check if all required fields are filled
+    if (formData.fullName && formData.email && formData.password && formData.userType) {
       try {
-        const res = await fetch('http://localhost:5000/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formValues),
+        // Send POST request to the backend for user registration
+        const response = await axios.post('http://localhost:5000/api/users', formData);
+
+        // On success, show a success toast
+        toast({
+          title: 'Registration successful',
+          description: 'Your account has been created successfully.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
         });
-        const data = await res.json();
-        if (res.status === 200) {
-          toast({
-            title: 'Registration successful!',
-            description: 'You have successfully registered.',
-            status: 'success',
-            duration: 5000,
-            isClosable: true,
-          });
-          navigate('/login'); // Redirect to login page after successful registration
-        } else {
-          toast({
-            title: 'Error',
-            description: data.msg || 'An error occurred during registration.',
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
-        }
-      } catch (err) {
-        console.error('Error during registration:', err);
+
+        // Optionally, you can redirect the user to the login page or home page
+      } catch (error) {
+        // Handle errors (e.g., validation failure, server issues)
+        setIsError(true);
+        setErrorMessages(error.response?.data?.errors || {});
         toast({
           title: 'Error',
-          description: 'Something went wrong. Please try again later.',
+          description: error.response?.data?.message || 'Something went wrong.',
           status: 'error',
           duration: 5000,
           isClosable: true,
         });
       }
+    } else {
+      // If any required field is missing, show error messages
+      setIsError(true);
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
   return (
-    <Box maxW="md" mx="auto" mt={12} p={8} bg="grey.100" borderRadius="lg" boxShadow="lg">
+    <Box maxW="md" mx="auto" mt={12} p={8} bg="gray.800" borderRadius="lg" boxShadow="lg">
       <form onSubmit={handleSubmit}>
-        <FormControl isInvalid={errors.fullName} mb={4}>
-          <FormLabel htmlFor="fullName" color="black">Full Name</FormLabel>
+        <FormControl isInvalid={isError} mb={4}>
+          <FormLabel htmlFor="fullName" color="white">Full Name</FormLabel>
           <Input
             id="fullName"
             name="fullName"
-            value={formValues.fullName}
-            onChange={handleChange}
+            type="text"
+            value={formData.fullName}
+            onChange={handleInputChange}
             placeholder="Enter your full name"
-            _placeholder={{ color: 'gray.400' }} // Lighter color for placeholder
-            bg="white" // Input background color
-            color="black" // Text color
+            _placeholder={{ color: 'gray.400' }}
+            bg="gray.700"
+            color="white"
           />
-          {errors.fullName && <FormErrorMessage>{errors.fullName}</FormErrorMessage>}
+          <FormErrorMessage>{errorMessages.fullName}</FormErrorMessage>
         </FormControl>
 
-        <FormControl isInvalid={errors.email} mb={4}>
-          <FormLabel htmlFor="email" color="black">Email</FormLabel>
+        <FormControl isInvalid={isError} mb={4}>
+          <FormLabel htmlFor="email" color="white">Email</FormLabel>
           <Input
             id="email"
             name="email"
             type="email"
-            value={formValues.email}
-            onChange={handleChange}
+            value={formData.email}
+            onChange={handleInputChange}
             placeholder="Enter your email"
-            _placeholder={{ color: 'gray.400' }} // Lighter color for placeholder
-            bg="white" // Input background color
-            color="black" // Text color
+            _placeholder={{ color: 'gray.400' }}
+            bg="gray.700"
+            color="white"
           />
-          {errors.email && <FormErrorMessage>{errors.email}</FormErrorMessage>}
+          <FormErrorMessage>{errorMessages.email}</FormErrorMessage>
         </FormControl>
 
-        <FormControl isInvalid={errors.password} mb={4}>
-          <FormLabel htmlFor="password" color="black">Password</FormLabel>
+        <FormControl isInvalid={isError} mb={4}>
+          <FormLabel htmlFor="password" color="white">Password</FormLabel>
           <Input
             id="password"
             name="password"
             type="password"
-            value={formValues.password}
-            onChange={handleChange}
+            value={formData.password}
+            onChange={handleInputChange}
             placeholder="Enter your password"
-            _placeholder={{ color: 'gray.400' }} // Lighter color for placeholder
-            bg="white" // Input background color
-            color="black" // Text color
+            _placeholder={{ color: 'gray.400' }}
+            bg="gray.700"
+            color="white"
           />
-          {errors.password && <FormErrorMessage>{errors.password}</FormErrorMessage>}
+          <FormErrorMessage>{errorMessages.password}</FormErrorMessage>
         </FormControl>
 
-        <FormControl isInvalid={errors.userType} mb={6}>
-          <FormLabel htmlFor="userType" color="black">User Type</FormLabel>
-          <Select
+        <FormControl isInvalid={isError} mb={6}>
+          <FormLabel htmlFor="userType" color="white">User Type</FormLabel>
+          <Input
             id="userType"
             name="userType"
-            value={formValues.userType}
-            onChange={handleChange}
-            placeholder="Select your role"
-            bg="white" // Input background color
-            color="black" // Text color
-          >
-            <option value="investor">Investor</option>
-            <option value="business owner">Business Owner</option>
-          </Select>
-          {errors.userType && <FormErrorMessage>{errors.userType}</FormErrorMessage>}
+            type="text"
+            value={formData.userType}
+            onChange={handleInputChange}
+            placeholder="Enter user type (e.g., admin, user)"
+            _placeholder={{ color: 'gray.400' }}
+            bg="gray.700"
+            color="white"
+          />
+          <FormErrorMessage>{errorMessages.userType}</FormErrorMessage>
         </FormControl>
 
         <Button colorScheme="blue" width="full" type="submit">
